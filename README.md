@@ -75,16 +75,49 @@ ThymeleafによるサーバーサイドレンダリングとREST APIの両方に
 `/` 配下はThymeleafによるサーバーサイドレンダリング、`/api/v1/` 配下はREST APIとして共存しています。SecurityConfigで未認証時の振る舞いを振り分けており、画面系はログインページへリダイレクト、API系は401を返します。
 
 **CSRF対策**
-画面系はCookieベースのCSRFトークンを有効にし、REST APIは無効にしています。
+画面系はCookieベースのCSRFトークンを有効にし、REST APIは無効にしています。これによりブラウザからのフォーム送信は保護しつつ、APIクライアントからのリクエストは柔軟に受け付けられます。
 
 **Flywayによるスキーマ管理**
-`spring.jpa.hibernate.ddl-auto=validate` に設定し、スキーマ変更はすべてFlywayのマイグレーションファイルで管理しています。
+`spring.jpa.hibernate.ddl-auto=validate` に設定し、スキーマ変更はすべてFlywayのマイグレーションファイルで管理しています。本番環境でも安全にスキーマ変更を適用できます。
 
 **エラーハンドリングの一元化**
-`GlobalExceptionHandler`（`@RestControllerAdvice`）で例外を一元処理し、API系はJSON、画面系はエラーページを返します。
+`GlobalExceptionHandler`（`@RestControllerAdvice`）で例外を一元処理し、API系はJSON、画面系はエラーページを返します。同じ例外でもリクエストの種別によってレスポンス形式を切り替えています。
+
+**セキュリティヘッダーの強化**
+HSTS・X-Frame-Options・Content-Type-Options・Referrer-Policyを明示的に設定し、クリックジャッキングやMIMEスニッフィングなどの攻撃を防いでいます。
+
+**ユーザー列挙攻撃への対策**
+ログイン失敗時に「メールアドレスが存在しない」「パスワードが違う」を区別せず「認証に失敗しました」と統一したメッセージを返すことで、攻撃者が登録済みメールアドレスを特定できないようにしています。
 
 **UserServiceのインターフェースを設けない理由**
-実装が1つのみで差し替えの予定がないため、過剰な抽象化を避けシンプルさを優先しました。
+実装が1つのみで差し替えの予定がないため、過剰な抽象化を避けシンプルさを優先しました。インターフェースが必要になった時点で導入する方針です。
+
+---
+
+## 開発で直面した課題と解決策
+
+**Spring Boot 4.x / Spring Security 7.x の互換性問題**
+`AntPathRequestMatcher` が削除され `PathPatternRequestMatcher` への移行が必要でした。また `defaultAuthenticationEntryPoint`（1引数版）が廃止されており、`AnyRequestMatcher.INSTANCE` を使った `defaultAuthenticationEntryPointFor` への置き換えで解決しました。ログイン画面への無限リダイレクトが発生しないよう、`authorizeHttpRequests` の `permitAll()` との連携も慎重に設計しました。
+
+**テストでのSpring Security統合問題**
+`@WebMvcTest` では `ActuatorSecurityConfig` が読み込まれてEndpointRequest関連のBeanが存在せず500エラーが発生しました。また `@SpringBootTest` + `@AutoConfigureMockMvc` では `@WithMockUser` が効かず401が返る問題が起きました。最終的に `MockMvcBuilders.webAppContextSetup(context).apply(springSecurity())` で明示的にSpring Securityを統合することで解決しました。
+
+**Testcontainersのバージョン互換性問題**
+Docker 29.x とTestcontainers 1.20.x の組み合わせで `Could not find a valid Docker environment` エラーが発生しました。Testcontainersを1.21.4以上にアップデートすることで解決しました。
+
+---
+
+## テスト構成
+
+| 種別 | クラス | 観点 |
+|---|---|---|
+| ユニットテスト | `UserRepositoryTest` | H2を使ったRepository層の動作確認 |
+| ユニットテスト | `UserServiceTest` | Mockitoを使ったビジネスロジックの確認 |
+| ユニットテスト | `RegisterControllerTest` | 登録フォームのバリデーション・画面遷移 |
+| ユニットテスト | `UserApiControllerTest` | APIエンドポイントの認証・レスポンス確認 |
+| 結合テスト | `UserRepositoryIntegrationTest` | PostgreSQL実機でのユニーク制約・型確認 |
+| 結合テスト | `RegisterControllerIntegrationTest` | 登録→ログインの一連フロー確認 |
+| 結合テスト | `UserApiControllerIntegrationTest` | 登録→ログイン→取得→削除→再ログイン失敗の一連フロー確認 |
 
 ---
 
@@ -130,7 +163,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ### テストの実行
 
 ```bash
-# ユニットテスト・スライステスト
+# ユニットテスト
 mvn test -Dspring.profiles.active=test
 
 # 結合テスト（Docker起動が必要）
