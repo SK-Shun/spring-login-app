@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>マイページ</title>
+  <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="page-container">
+
+  <header class="page-header">
+    <h1>マイページ</h1>
+    <form th:action="@{/logout}" method="post">
+      <button type="submit" class="btn-logout">ログアウト</button>
+    </form>
+  </header>
+
+  <main class="page-main">
+    <div class="user-card">
+      <h2>ようこそ、<span th:text="${user.username}"></span>さん</h2>
+      <dl class="user-info">
+        <dt>メールアドレス</dt>
+        <dd th:text="${user.email}"></dd>
+        <dt>登録日時</dt>
+        <dd th:text="${#temporals.format(user.createdAt, 'yyyy年MM月dd日')}"></dd>
+      </dl>
+    </div>
+  </main>
+
+</div>
+
+</body>
+</html>

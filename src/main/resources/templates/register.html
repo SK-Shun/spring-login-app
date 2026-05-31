@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新規登録</title>
+  <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card">
+
+    <h1 class="auth-title">新規登録</h1>
+
+    <form th:action="@{/register}" th:object="${registerRequest}" method="post"
+          class="auth-form">
+
+      <!-- メールアドレス -->
+      <div class="form-group">
+        <label for="email">メールアドレス</label>
+        <input type="email"
+               id="email"
+               th:field="*{email}"
+               placeholder="you@example.com"
+               autocomplete="email">
+        <span th:if="${#fields.hasErrors('email')}"
+              th:errors="*{email}"
+              class="form-error"></span>
+      </div>
+
+      <!-- ユーザー名 -->
+      <div class="form-group">
+        <label for="username">ユーザー名</label>
+        <input type="text"
+               id="username"
+               th:field="*{username}"
+               placeholder="ユーザー名"
+               autocomplete="username">
+        <span th:if="${#fields.hasErrors('username')}"
+              th:errors="*{username}"
+              class="form-error"></span>
+      </div>
+
+      <!-- パスワード -->
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input type="password"
+               id="password"
+               th:field="*{password}"
+               placeholder="••••••••"
+               autocomplete="new-password">
+        <span th:if="${#fields.hasErrors('password')}"
+              th:errors="*{password}"
+              class="form-error"></span>
+      </div>
+
+      <!-- 確認用パスワード -->
+      <div class="form-group">
+        <label for="confirmPassword">パスワード（確認）</label>
+        <input type="password"
+               id="confirmPassword"
+               th:field="*{confirmPassword}"
+               placeholder="••••••••"
+               autocomplete="new-password">
+        <span th:if="${#fields.hasErrors('confirmPassword')}"
+              th:errors="*{confirmPassword}"
+              class="form-error"></span>
+      </div>
+
+      <button type="submit" class="btn-primary">登録</button>
+
+    </form>
+
+    <p class="auth-footer">
+      すでにアカウントをお持ちの方は
+      <a th:href="@{/login}">ログインはこちら</a>
+    </p>
+
+  </div>
+</div>
+
+</body>
+</html>

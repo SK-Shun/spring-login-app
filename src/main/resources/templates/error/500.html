@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>500 Internal Server Error</title>
+  <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body>
+<div class="auth-container">
+  <div class="auth-card">
+    <h1 class="auth-title">500</h1>
+    <p style="text-align:center; color:#888; margin-bottom:24px;">
+      サーバーエラーが発生しました。しばらく経ってから再度お試しください。
+    </p>
+    <a th:href="@{/user}" class="btn-primary"
+       style="display:block; text-align:center; text-decoration:none;">
+      トップへ戻る
+    </a>
+  </div>
+</div>
+</body>
+</html>
