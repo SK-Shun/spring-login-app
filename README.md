@@ -151,7 +151,7 @@ Docker 29.x とTestcontainers 1.20.x の組み合わせで `Could not find a val
 
 ```bash
 # リポジトリのクローン
-git clone https://github.com/SK-Shun/spring-login-app.git
+git clone https://github.com/[GitHubユーザー名]/spring-login-app.git
 cd spring-login-app
 
 # 起動（devプロファイル・H2インメモリDB）
@@ -174,10 +174,23 @@ mvn test -Dspring.profiles.active=integration
 
 ## 開発状況
 
-- [x] フェーズ1：土台（DBとエンティティ）
-- [x] フェーズ2：認証基盤
-- [x] フェーズ3：登録機能
-- [x] フェーズ4：ログイン画面（Thymeleaf）
-- [x] フェーズ5：例外ハンドリング
-- [x] フェーズ6：REST API
-- [x] フェーズ7：テストコード（ユニット・結合）
+### フェーズ1：土台（DBとエンティティ）
+アプリの中心となるデータ構造を設計しました。JPAエンティティ（`User`）を定義し、Flywayのマイグレーションファイル（`V1__create_users_table.sql`）でスキーマを管理しています。`ddl-auto=validate` に設定することで、エンティティとDBスキーマの不一致を起動時に検出できるようにしました。開発環境はH2インメモリDB、本番環境はPostgreSQLをプロファイルで切り替える構成にしました。
+
+### フェーズ2：認証基盤
+`UserDetailsService` を実装した `UserDetailsServiceImpl` を作成し、Spring Securityと連携させました。ログイン失敗時のエラーメッセージを「メールアドレスが存在しない」「パスワードが違う」と区別せず統一することで、ユーザー列挙攻撃を防いでいます。
+
+### フェーズ3：登録機能
+`RegisterRequest`（DTO）に `@NotBlank` / `@Email` / `@Size` でサーバー側バリデーションを実装しました。パスワードと確認用パスワードの一致チェックは独自アノテーション（`@PasswordConfirm`）として切り出し、再利用可能な設計にしました。登録成功後はPRGパターン（Post/Redirect/Get）でリダイレクトし、二重送信を防いでいます。
+
+### フェーズ4：ログイン画面（Thymeleaf）
+Spring Securityの `formLogin` と連携したログイン画面を作成しました。`th:action` によりThymeleafがCSRFトークンを自動付与します。ログイン成功・失敗・ログアウトの3パターンのメッセージ表示に対応しています。
+
+### フェーズ5：例外ハンドリング
+`@RestControllerAdvice` による `GlobalExceptionHandler` で例外を一元管理しました。`/api/**` へのリクエストにはJSON形式のエラーレスポンス、画面系リクエストにはエラーページを返す振り分けを実装しました。予期しない例外はERRORレベルでログに記録し、ユーザーには詳細を返さない設計にしました。
+
+### フェーズ6：REST API
+APIのバージョニング（`/api/v1/`）を最初から導入し、将来のv2追加時にv1を壊さない構成にしました。エンティティをそのままレスポンスとして返さず、`UserResponse`（Record）に詰め替えることでパスワードハッシュ等の内部情報の漏洩を防いでいます。Actuatorは `/actuator/health` のみ全公開し、その他のエンドポイントはBasic認証で保護しました。
+
+### フェーズ7：テストコード（ユニット・結合）
+ユニットテストはH2とMockitoを使って各層を独立してテストしました。結合テストはTestcontainersでPostgreSQLコンテナを起動し、本番に近い環境で登録→ログイン→取得→削除→再ログイン失敗の一連フローを確認しました。Spring Boot 4.x / Spring Security 7.x の互換性問題により `@WebMvcTest` や `@AutoConfigureMockMvc` が期待通り動作せず、`MockMvcBuilders.webAppContextSetup().apply(springSecurity())` で解決しました。
