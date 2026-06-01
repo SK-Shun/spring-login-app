@@ -74,7 +74,8 @@ ThymeleafによるサーバーサイドレンダリングとREST APIの両方に
     ├── exception/
     │   ├── UserNotFoundException.java
     │   ├── DuplicateEmailException.java
-    │   └── GlobalExceptionHandler.java
+    │   ├── GlobalExceptionHandler.java       # API用例外ハンドリング
+    │   └── WebExceptionHandler.java          # 画面用例外ハンドリング
     └── validation/
         ├── PasswordConfirm.java
         └── PasswordConfirmValidator.java
@@ -92,8 +93,8 @@ ThymeleafによるサーバーサイドレンダリングとREST APIの両方に
 **Flywayによるスキーマ管理**
 `spring.jpa.hibernate.ddl-auto=validate` に設定し、スキーマ変更はすべてFlywayのマイグレーションファイルで管理しています。本番環境でも安全にスキーマ変更を適用できます。
 
-**エラーハンドリングの一元化**
-`GlobalExceptionHandler`（`@RestControllerAdvice`）で例外を一元処理し、API系はJSON、画面系はエラーページを返します。同じ例外でもリクエストの種別によってレスポンス形式を切り替えています。
+**例外ハンドリングの責務分離**
+`@RestControllerAdvice(basePackages = "com.example.demo.controller.api")` による `GlobalExceptionHandler` でAPI層の例外をJSON形式で処理し、`@ControllerAdvice(basePackages = "com.example.demo.controller.web")` による `WebExceptionHandler` で画面層の例外をViewで処理しています。リクエストパスで振り分けるのではなく、ControllerAdviceのスコープで責務を分離しています。
 
 **セキュリティヘッダーの強化**
 HSTS・X-Frame-Options・Content-Type-Options・Referrer-Policyを明示的に設定し、クリックジャッキングやMIMEスニッフィングなどの攻撃を防いでいます。
@@ -199,10 +200,10 @@ mvn test -Dspring.profiles.active=integration
 Spring Securityの `formLogin` と連携したログイン画面を作成しました。`th:action` によりThymeleafがCSRFトークンを自動付与します。ログイン成功・失敗・ログアウトの3パターンのメッセージ表示に対応しています。
 
 ### フェーズ5：例外ハンドリング
-`@RestControllerAdvice` による `GlobalExceptionHandler` で例外を一元管理しました。`/api/**` へのリクエストにはJSON形式のエラーレスポンス、画面系リクエストにはエラーページを返す振り分けを実装しました。予期しない例外はERRORレベルでログに記録し、ユーザーには詳細を返さない設計にしました。
+`@RestControllerAdvice` による `GlobalExceptionHandler` でAPI層の例外をJSON形式で処理し、`@ControllerAdvice` による `WebExceptionHandler` で画面層の例外をViewで処理しています。それぞれ `basePackages` でスコープを限定することで責務を明確に分離しました。
 
 ### フェーズ6：REST API
-APIのバージョニング（`/api/v1/`）を最初から導入し、将来のv2追加時にv1を壊さない構成にしました。エンティティをそのままレスポンスとして返さず、`UserResponse`（Record）に詰め替えることでパスワードハッシュ等の内部情報の漏洩を防いでいます。Actuatorは `/actuator/health` のみ全公開し、その他のエンドポイントはBasic認証で保護しました。
+APIのバージョニング（`/api/v1/`）を最初から導入し、将来のv2追加時にv1を壊さない構成にしました。エンティティをそのままレスポンスとして返さず、`UserResponse`（Record）に詰め替えることでパスワードハッシュ等の内部情報の漏洩を防いでいます。ControllerからはすべてServiceを経由してデータにアクセスし、Repository直呼びを排除しています。Actuatorは `/actuator/health` のみ全公開し、その他のエンドポイントはBasic認証で保護しました。
 
 ### フェーズ7：テストコード（ユニット・結合）
 ユニットテストはH2とMockitoを使って各層を独立してテストしました。結合テストはTestcontainersでPostgreSQLコンテナを起動し、本番に近い環境で登録→ログイン→取得→削除→再ログイン失敗の一連フローを確認しました。Spring Boot 4.x / Spring Security 7.x の互換性問題により `@WebMvcTest` や `@AutoConfigureMockMvc` が期待通り動作せず、`MockMvcBuilders.webAppContextSetup().apply(springSecurity())` で解決しました。
