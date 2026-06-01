@@ -8,56 +8,46 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.example.demo.dto.response.ErrorResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "com.example.demo.controller.api")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateEmailException.class)
-    public Object handleDuplicateEmail(
-            DuplicateEmailException ex,
-            HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleDuplicateEmail(
+            DuplicateEmailException ex) {
 
-        if (isApiRequest(request)) {
-            log.warn("重複メールアドレス: {}", ex.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.CONFLICT)
-                    .body(ErrorResponse.of(
-                            HttpStatus.CONFLICT.value(),
-                            "DUPLICATE_EMAIL",
-                            "このメールアドレスはすでに登録されています"
-                    ));
-        }
-        return new ModelAndView("redirect:/register");
+        log.warn("重複メールアドレス: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ErrorResponse.of(
+                        HttpStatus.CONFLICT.value(),
+                        "DUPLICATE_EMAIL",
+                        "このメールアドレスはすでに登録されています"
+                ));
     }
 
     @ExceptionHandler(UserNotFoundException.class)
-    public Object handleUserNotFound(
-            UserNotFoundException ex,
-            HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleUserNotFound(
+            UserNotFoundException ex) {
 
-        if (isApiRequest(request)) {
-            log.warn("ユーザー未存在: {}", ex.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(ErrorResponse.of(
-                            HttpStatus.NOT_FOUND.value(),
-                            "USER_NOT_FOUND",
-                            "ユーザーが見つかりません"
-                    ));
-        }
-        return new ModelAndView("error/404");
+        log.warn("ユーザー未存在: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(
+                        HttpStatus.NOT_FOUND.value(),
+                        "USER_NOT_FOUND",
+                        "ユーザーが見つかりません"
+                ));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationError(
-            MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
+            MethodArgumentNotValidException ex) {
 
         String message = ex.getBindingResult()
                 .getFieldErrors()
@@ -79,25 +69,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public Object handleException(
+    public ResponseEntity<ErrorResponse> handleException(
             Exception ex,
             HttpServletRequest request) {
 
         log.error("予期しないエラー: uri={}", request.getRequestURI(), ex);
-
-        if (isApiRequest(request)) {
-            return ResponseEntity
-                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ErrorResponse.of(
-                            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                            "INTERNAL_SERVER_ERROR",
-                            "サーバーエラーが発生しました"
-                    ));
-        }
-        return new ModelAndView("error/500");
-    }
-
-    private boolean isApiRequest(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/api/");
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ErrorResponse.of(
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "INTERNAL_SERVER_ERROR",
+                        "サーバーエラーが発生しました"
+                ));
     }
 }
