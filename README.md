@@ -3,15 +3,15 @@
 Spring Boot 4.x を使ったログイン機能付きWebアプリケーションです。
 ThymeleafによるサーバーサイドレンダリングとREST APIの両方に対応しており、実務・本番向けの構成を意識して作成しました。
 
-<img width="800" alt="スクリーンショット (697)" src="https://github.com/user-attachments/assets/adf589f7-751c-4b1c-8113-0ec096c202f8" />
+<img width="500" alt="スクリーンショット (697)" src="https://github.com/user-attachments/assets/adf589f7-751c-4b1c-8113-0ec096c202f8" />
 
-<img width="1483" height="834" alt="スクリーンショット (682)" src="https://github.com/user-attachments/assets/29986270-0fa8-498e-9656-cf223a06fe2d" />
+<img width="800"  alt="スクリーンショット (682)" src="https://github.com/user-attachments/assets/29986270-0fa8-498e-9656-cf223a06fe2d" />
 
-<img width="1483" height="834" alt="スクリーンショット (683)" src="https://github.com/user-attachments/assets/a9dd0d31-d34b-4af7-80d8-32e53ffd20d6" />
+<img width="500" alt="スクリーンショット (683)" src="https://github.com/user-attachments/assets/a9dd0d31-d34b-4af7-80d8-32e53ffd20d6" />
 
-<img width="1920" height="693" alt="スクリーンショット (680)" src="https://github.com/user-attachments/assets/becd1634-87ee-4777-b354-9554459286bb" />
+<img width="500"  alt="スクリーンショット (680)" src="https://github.com/user-attachments/assets/becd1634-87ee-4777-b354-9554459286bb" />
 
-<img width="1483" height="834" alt="スクリーンショット (681)" src="https://github.com/user-attachments/assets/3a6a6a1d-7564-41c7-b95f-506d7bc956bc" />
+<img width="500"  alt="スクリーンショット (681)" src="https://github.com/user-attachments/assets/3a6a6a1d-7564-41c7-b95f-506d7bc956bc" />
 
 ---
 
