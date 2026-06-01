@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,20 +19,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping
     public String showUserPage(
             @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
 
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> {
-                    log.error("認証済みユーザーがDBに存在しない: email={}",
-                            userDetails.getUsername());
-                    return new IllegalStateException("ユーザーが見つかりません");
-                });
-
+        User user = userService.findByEmail(userDetails.getUsername());
         model.addAttribute("user", user);
         return "user";
     }
