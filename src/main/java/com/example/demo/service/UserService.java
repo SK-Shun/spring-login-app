@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.demo.dto.request.RegisterRequest;
 import com.example.demo.entity.User;
 import com.example.demo.exception.DuplicateEmailException;
+import com.example.demo.exception.UserNotFoundException;
 import com.example.demo.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -42,5 +43,20 @@ public class UserService {
         log.info("ユーザー登録完了: userId={}, email={}", saved.getId(), saved.getEmail());
 
         return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+    }
+
+    @Transactional
+    public void disable(String email) {
+        User user = findByEmail(email);
+        user.disable();
+        userRepository.save(user);
+
+        log.info("アカウント無効化完了: email={}", email);
     }
 }
