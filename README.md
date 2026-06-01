@@ -5,7 +5,7 @@ ThymeleafによるサーバーサイドレンダリングとREST APIの両方に
 
 <img width="500" alt="スクリーンショット (697)" src="https://github.com/user-attachments/assets/adf589f7-751c-4b1c-8113-0ec096c202f8" />
 
-<img width="800"  alt="スクリーンショット (682)" src="https://github.com/user-attachments/assets/29986270-0fa8-498e-9656-cf223a06fe2d" />
+<img width="500"  alt="スクリーンショット (682)" src="https://github.com/user-attachments/assets/29986270-0fa8-498e-9656-cf223a06fe2d" />
 
 <img width="500" alt="スクリーンショット (683)" src="https://github.com/user-attachments/assets/a9dd0d31-d34b-4af7-80d8-32e53ffd20d6" />
 
