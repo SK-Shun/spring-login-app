@@ -3,7 +3,7 @@
 Spring Boot 4.x を使ったログイン機能付きWebアプリケーションです。
 ThymeleafによるサーバーサイドレンダリングとREST APIの両方に対応しており、実務・本番向けの構成を意識して作成しました。
 
-<img width="1456" height="858" alt="スクリーンショット (697)" src="https://github.com/user-attachments/assets/adf589f7-751c-4b1c-8113-0ec096c202f8" />
+<img width="800" alt="スクリーンショット (697)" src="https://github.com/user-attachments/assets/adf589f7-751c-4b1c-8113-0ec096c202f8" />
 
 <img width="1483" height="834" alt="スクリーンショット (682)" src="https://github.com/user-attachments/assets/29986270-0fa8-498e-9656-cf223a06fe2d" />
 
