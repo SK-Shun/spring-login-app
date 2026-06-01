@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.request.RegisterRequest;
 import com.example.demo.dto.response.UserResponse;
-import com.example.demo.entity.User;
-import com.example.demo.exception.UserNotFoundException;
-import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class UserApiController {
 
-    private final UserRepository userRepository;
     private final UserService userService;
 
     @GetMapping("/me")
@@ -38,10 +34,9 @@ public class UserApiController {
 
         log.debug("GET /api/v1/user/me: email={}", userDetails.getUsername());
 
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new UserNotFoundException(userDetails.getUsername()));
-
-        return ResponseEntity.ok(UserResponse.from(user));
+        return ResponseEntity.ok(
+                UserResponse.from(userService.findByEmail(userDetails.getUsername()))
+        );
     }
 
     @PostMapping("/register")
@@ -50,11 +45,9 @@ public class UserApiController {
 
         log.debug("POST /api/v1/user/register: email={}", request.getEmail());
 
-        User user = userService.register(request);
-
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(UserResponse.from(user));
+                .body(UserResponse.from(userService.register(request)));
     }
 
     @DeleteMapping("/me")
@@ -63,11 +56,7 @@ public class UserApiController {
 
         log.info("DELETE /api/v1/user/me: email={}", userDetails.getUsername());
 
-        User user = userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new UserNotFoundException(userDetails.getUsername()));
-
-        user.disable();
-        userRepository.save(user);
+        userService.disable(userDetails.getUsername());
 
         return ResponseEntity.noContent().build();
     }
