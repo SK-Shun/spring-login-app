@@ -1,10 +1,10 @@
 package com.example.demo.service;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.*;
-
+import com.example.demo.dto.request.RegisterRequest;
+import com.example.demo.entity.User;
+import com.example.demo.exception.DuplicateEmailException;
+import com.example.demo.exception.UserNotFoundException;
+import com.example.demo.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,10 +14,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.example.demo.dto.request.RegisterRequest;
-import com.example.demo.entity.User;
-import com.example.demo.exception.DuplicateEmailException;
-import com.example.demo.repository.UserRepository;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -71,5 +76,67 @@ class UserServiceTest {
 
         verify(userRepository, never()).save(any());
         verify(passwordEncoder, never()).encode(anyString());
+    }
+
+    @Test
+    @DisplayName("メールアドレスでユーザーを取得できる")
+    void findByEmail_success() {
+        User mockUser = User.builder()
+                .email("test@example.com")
+                .username("テストユーザー")
+                .password("encodedPassword")
+                .enabled(true)
+                .build();
+
+        given(userRepository.findByEmail("test@example.com"))
+                .willReturn(Optional.of(mockUser));
+
+        User result = userService.findByEmail("test@example.com");
+
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
+        verify(userRepository).findByEmail("test@example.com");
+    }
+
+    @Test
+    @DisplayName("存在しないメールアドレスでUserNotFoundExceptionが発生する")
+    void findByEmail_notFound() {
+        given(userRepository.findByEmail(anyString()))
+                .willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.findByEmail("notfound@example.com"))
+                .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("アカウントを無効化できる")
+    void disable_success() {
+        User mockUser = User.builder()
+                .email("test@example.com")
+                .username("テストユーザー")
+                .password("encodedPassword")
+                .enabled(true)
+                .build();
+
+        given(userRepository.findByEmail("test@example.com"))
+                .willReturn(Optional.of(mockUser));
+        given(userRepository.save(any(User.class)))
+                .willReturn(mockUser);
+
+        userService.disable("test@example.com");
+
+        assertThat(mockUser.isEnabled()).isFalse();
+        verify(userRepository).save(mockUser);
+    }
+
+    @Test
+    @DisplayName("存在しないメールアドレスで無効化するとUserNotFoundExceptionが発生する")
+    void disable_userNotFound() {
+        given(userRepository.findByEmail(anyString()))
+                .willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.disable("notfound@example.com"))
+                .isInstanceOf(UserNotFoundException.class);
+
+        verify(userRepository, never()).save(any());
     }
 }
